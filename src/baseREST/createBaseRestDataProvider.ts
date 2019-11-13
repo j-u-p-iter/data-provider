@@ -49,7 +49,6 @@ export const createBaseRestDataProvider: CreateDataProvider = host => {
     return extractData<GetManyResponse>(axios.get(url));
   };
 
-  // UPDATE
   const update = (resource, params) => {
     const url = makeUrl({
       host,
