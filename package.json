@@ -1,0 +1,36 @@
+{
+  "name": "@j.u.p.iter/data-provider",
+  "version": "0.0.0-semantically-released",
+  "description": "Data providers",
+  "keywords": [
+    "data provider",
+    "graphQL",
+    "REST",
+    "api"
+  ],
+  "main": "dist/lib/data-provider.cjs.js",
+  "module": "dist/lib/data-provider.esm.js",
+  "umd:main": "dist/lib/data-provider.umd.min.js",
+  "typings": "dist/types",
+  "repository": "git@github.com:j-u-p-iter/data-provider.git",
+  "author": "Leontyev Kirill (j.u.p.iter) <pn79122821224@gmail.com> (http://j-u-p-iter.pro/)",
+  "license": "MIT",
+  "scripts": {
+    "commit": "jupiter-scripts precommit --allowJs",
+    "build": "jupiter-scripts build --bundle",
+    "start": "yarn run build --watch",
+    "lint": "jupiter-scripts lint --format codeFrame",
+    "lint:fix": "yarn run lint --fix",
+    "test": "jupiter-scripts test"
+  },
+  "devDependencies": {
+    "@j.u.p.iter/jupiter-scripts": "^1.12.0",
+    "@types/faker": "^4.1.7",
+    "faker": "^4.1.0",
+    "nock": "^11.7.0"
+  },
+  "dependencies": {
+    "@j.u.p.iter/node-utils": "^1.2.0",
+    "axios": "^0.19.0"
+  }
+}
