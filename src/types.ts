@@ -8,24 +8,24 @@ export type DataProviderMethod<Params, Response> = (
   params: Params
 ) => Promise<Response>;
 
-type Identifier = string;
+export type Identifier = string;
 
-interface RecordWithoutID {
+export interface RecordWithoutID {
   [key: string]: any;
 }
 
-interface Record extends RecordWithoutID {
+export interface Record extends RecordWithoutID {
   id: Identifier;
   [key: string]: any;
 }
 
-type RecordsList = Record[];
+export type RecordsList = Record[];
 
-type IdentifiersList = Identifier[];
+export type IdentifiersList = Identifier[];
 
 export type Resource = string;
 
-interface CommonResponse<Data> {
+export interface CommonResponse<Data> {
   success: boolean;
   message: string;
   data: Data;
