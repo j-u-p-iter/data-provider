@@ -113,4 +113,8 @@ export interface DataProvider {
   deleteMany: DataProviderMethod<DeleteManyParams, DeleteManyResponse>;
 }
 
-export type CreateDataProvider = (baseUrl: string) => DataProvider;
+export type CreateDataProvider = (params: {
+  host: string;
+  protocol?: string;
+  apiVersion?: string;
+}) => DataProvider;

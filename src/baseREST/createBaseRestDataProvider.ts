@@ -15,14 +15,21 @@ import {
   UpdateResponse
 } from "../types";
 
-export const createBaseRestDataProvider: CreateDataProvider = host => {
+export const createBaseRestDataProvider: CreateDataProvider = ({
+  host,
+  protocol = "https",
+  apiVersion = "v1"
+}) => {
+  const getPath = basePath => `api/${apiVersion}/${basePath}`;
+
   const getList = (
     resource,
     { pagination: { limit = 10, offset = 0 } = {} } = {}
   ) => {
     const url = makeUrl({
       host,
-      path: resource,
+      protocol,
+      path: getPath(resource),
       queryObject: { limit, offset }
     });
 
@@ -33,7 +40,8 @@ export const createBaseRestDataProvider: CreateDataProvider = host => {
   const getOne = (resource, params) => {
     const url = makeUrl({
       host,
-      path: [resource, params.id].join("/")
+      protocol,
+      path: getPath([resource, params.id].join("/"))
     });
 
     return extractData<GetOneResponse>(axios.get(url));
@@ -42,7 +50,8 @@ export const createBaseRestDataProvider: CreateDataProvider = host => {
   const getMany = (resource, params) => {
     const url = makeUrl({
       host,
-      path: resource,
+      protocol,
+      path: getPath(resource),
       queryObject: { id: params.ids }
     });
 
@@ -52,7 +61,8 @@ export const createBaseRestDataProvider: CreateDataProvider = host => {
   const update = (resource, params) => {
     const url = makeUrl({
       host,
-      path: [resource, params.id].join("/")
+      protocol,
+      path: getPath([resource, params.id].join("/"))
     });
 
     return extractData<UpdateResponse>(axios.put(url, params.data));
@@ -61,7 +71,8 @@ export const createBaseRestDataProvider: CreateDataProvider = host => {
   const updateMany = (resource, params) => {
     const url = makeUrl({
       host,
-      path: resource,
+      protocol,
+      path: getPath(resource),
       queryObject: { id: params.ids }
     });
 
@@ -70,7 +81,7 @@ export const createBaseRestDataProvider: CreateDataProvider = host => {
 
   // CREATE
   const create = (resource, params) => {
-    const url = makeUrl({ host, path: resource });
+    const url = makeUrl({ host, protocol, path: getPath(resource) });
 
     return extractData<CreateResponse>(axios.post(url, params.data));
   };
@@ -79,7 +90,8 @@ export const createBaseRestDataProvider: CreateDataProvider = host => {
   const deleteOne = (resource, params) => {
     const url = makeUrl({
       host,
-      path: [resource, params.id].join("/")
+      protocol,
+      path: getPath([resource, params.id].join("/"))
     });
 
     return extractData<DeleteOneResponse>(axios.delete(url));
@@ -88,7 +100,8 @@ export const createBaseRestDataProvider: CreateDataProvider = host => {
   const deleteMany = (resource, params) => {
     const url = makeUrl({
       host,
-      path: resource,
+      protocol,
+      path: getPath(resource),
       queryObject: { id: params.ids }
     });
 
