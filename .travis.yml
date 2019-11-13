@@ -16,4 +16,3 @@ jobs:
 stages:
   validate
   deploy
-
