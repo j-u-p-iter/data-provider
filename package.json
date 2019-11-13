@@ -1,6 +1,6 @@
 {
   "name": "@j.u.p.iter/data-provider",
-  "version": "0.0.0-semantically-released",
+  "version": "0.0.1",
   "description": "Data providers",
   "keywords": [
     "data provider",
