@@ -17,6 +17,7 @@ import {
 
 export const createBaseRestDataProvider: CreateDataProvider = ({
   host,
+  port = null,
   protocol = "https",
   apiVersion = "v1"
 }) => {
@@ -28,6 +29,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
   ) => {
     const url = makeUrl({
       host,
+      port,
       protocol,
       path: getPath(resource),
       queryObject: { limit, offset }
@@ -40,6 +42,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
   const getOne = (resource, params) => {
     const url = makeUrl({
       host,
+      port,
       protocol,
       path: getPath([resource, params.id].join("/"))
     });
@@ -50,6 +53,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
   const getMany = (resource, params) => {
     const url = makeUrl({
       host,
+      port,
       protocol,
       path: getPath(resource),
       queryObject: { id: params.ids }
@@ -61,6 +65,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
   const update = (resource, params) => {
     const url = makeUrl({
       host,
+      port,
       protocol,
       path: getPath([resource, params.id].join("/"))
     });
@@ -71,6 +76,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
   const updateMany = (resource, params) => {
     const url = makeUrl({
       host,
+      port,
       protocol,
       path: getPath(resource),
       queryObject: { id: params.ids }
@@ -81,7 +87,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
 
   // CREATE
   const create = (resource, params) => {
-    const url = makeUrl({ host, protocol, path: getPath(resource) });
+    const url = makeUrl({ host, port, protocol, path: getPath(resource) });
 
     return extractData<CreateResponse>(axios.post(url, params.data));
   };
@@ -90,6 +96,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
   const deleteOne = (resource, params) => {
     const url = makeUrl({
       host,
+      port,
       protocol,
       path: getPath([resource, params.id].join("/"))
     });
@@ -100,6 +107,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
   const deleteMany = (resource, params) => {
     const url = makeUrl({
       host,
+      port,
       protocol,
       path: getPath(resource),
       queryObject: { id: params.ids }

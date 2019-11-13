@@ -188,7 +188,7 @@ describe("createBaseRestDataProvider", () => {
   });
 
   describe("with custom params", () => {
-    const baseUrl = `http://${HOST}`;
+    const baseUrl = `http://${HOST}:3000`;
     const path = `/api/v2/${resource}`;
     const pathWithId = `/api/v2/${resource}/${params.id}`;
 
@@ -196,7 +196,8 @@ describe("createBaseRestDataProvider", () => {
       baseRestDataProvider = createBaseRestDataProvider({
         protocol: "http",
         host: HOST,
-        apiVersion: "v2"
+        apiVersion: "v2",
+        port: 3000
       });
     });
 

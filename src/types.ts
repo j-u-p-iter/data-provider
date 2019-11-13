@@ -117,4 +117,5 @@ export type CreateDataProvider = (params: {
   host: string;
   protocol?: string;
   apiVersion?: string;
+  port?: number | null;
 }) => DataProvider;
