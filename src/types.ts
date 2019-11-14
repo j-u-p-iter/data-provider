@@ -1,12 +1,14 @@
-export type DataProviderMethodWithOptionalParams<Params, Response> = (
+// We use ResultResponse instead of simply Response, to avoid shadowing
+//
+export type DataProviderMethodWithOptionalParams<Params, ResultResponse> = (
   resource: string,
   params?: Params
-) => Promise<Response>;
+) => Promise<ResultResponse>;
 
-export type DataProviderMethod<Params, Response> = (
+export type DataProviderMethod<Params, ResultResponse> = (
   resource: string,
   params: Params
-) => Promise<Response>;
+) => Promise<ResultResponse>;
 
 export type Identifier = string;
 
@@ -25,17 +27,20 @@ export type IdentifiersList = Identifier[];
 
 export type Resource = string;
 
-export interface CommonResponse<Data> {
+// We also return array of records to be able to handle all cases in one common consistent way.
+// `data` property in response can also contain properties, different from `items`.
+// For example, in case of GetListParams we get in data also total count of all items to be able
+// to show pagination on client side.
+export interface Response {
   success: boolean;
   message: string;
-  data: Data;
+  data: {
+    items: RecordsList;
+    [key: string]: any;
+  };
 }
 
 // GET LIST
-export interface GetListResponse extends CommonResponse<RecordsList> {
-  total: number;
-}
-
 export interface GetListParams {
   pagination: {
     limit: number;
@@ -44,73 +49,59 @@ export interface GetListParams {
 }
 
 // GET ONE
-export interface GetOneResponse extends CommonResponse<Record> {}
-
 export interface GetOneParams {
   id: Identifier;
 }
 
 // GET MANY
-export interface GetManyResponse extends CommonResponse<RecordsList> {}
-
 export interface GetManyParams {
   ids: IdentifiersList;
 }
 
 // UPDATE
-export interface UpdateResponse extends CommonResponse<Record> {}
-
 export interface UpdateParams {
   id: Identifier;
   data: Partial<Record>;
 }
 
 // UPDATE MANY
-export interface UpdateManyResponse extends CommonResponse<Record[]> {}
-
 export interface UpdateManyParams {
   ids: IdentifiersList;
   data: Partial<Record>;
 }
 
 // CREATE
-export interface CreateResponse extends CommonResponse<Record> {}
-
 export interface CreateParams {
   id: Identifier;
   data: RecordWithoutID;
 }
 
 // DELETE
-export interface DeleteOneResponse extends CommonResponse<Record> {}
-
 export interface DeleteParams {
   id: Identifier;
 }
 
 // DELETE MANY
-export interface DeleteManyResponse extends CommonResponse<Record[]> {}
-
 export interface DeleteManyParams {
   ids: IdentifiersList;
 }
 
 export interface DataProvider {
-  getList: DataProviderMethodWithOptionalParams<GetListParams, GetListResponse>;
+  getList: DataProviderMethodWithOptionalParams<GetListParams, Response>;
 
-  getOne: DataProviderMethod<GetOneParams, GetOneResponse>;
+  getOne: DataProviderMethod<GetOneParams, Response>;
 
-  getMany: DataProviderMethod<GetManyParams, GetManyResponse>;
+  getMany: DataProviderMethod<GetManyParams, Response>;
 
-  update: DataProviderMethod<UpdateParams, UpdateResponse>;
+  update: DataProviderMethod<UpdateParams, Response>;
 
-  updateMany: DataProviderMethod<UpdateManyParams, UpdateManyResponse>;
+  updateMany: DataProviderMethod<UpdateManyParams, Response>;
 
-  create: DataProviderMethod<CreateParams, CreateResponse>;
+  create: DataProviderMethod<CreateParams, Response>;
 
-  delete: DataProviderMethod<DeleteParams, DeleteOneResponse>;
+  delete: DataProviderMethod<DeleteParams, Response>;
 
-  deleteMany: DataProviderMethod<DeleteManyParams, DeleteManyResponse>;
+  deleteMany: DataProviderMethod<DeleteManyParams, Response>;
 }
 
 export type CreateDataProvider = (params: {

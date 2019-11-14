@@ -3,17 +3,7 @@ import axios from "axios";
 
 import { extractData } from "../helpers";
 
-import {
-  CreateDataProvider,
-  CreateResponse,
-  DeleteManyResponse,
-  DeleteOneResponse,
-  GetListResponse,
-  GetManyResponse,
-  GetOneResponse,
-  UpdateManyResponse,
-  UpdateResponse
-} from "../types";
+import { CreateDataProvider, Response } from "../types";
 
 export const createBaseRestDataProvider: CreateDataProvider = ({
   host,
@@ -35,7 +25,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
       queryObject: { limit, offset }
     });
 
-    return extractData<GetListResponse>(axios.get(url));
+    return extractData<Response>(axios.get(url));
   };
 
   // GET
@@ -47,7 +37,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
       path: getPath([resource, params.id].join("/"))
     });
 
-    return extractData<GetOneResponse>(axios.get(url));
+    return extractData<Response>(axios.get(url));
   };
 
   const getMany = (resource, params) => {
@@ -59,7 +49,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
       queryObject: { id: params.ids }
     });
 
-    return extractData<GetManyResponse>(axios.get(url));
+    return extractData<Response>(axios.get(url));
   };
 
   const update = (resource, params) => {
@@ -70,7 +60,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
       path: getPath([resource, params.id].join("/"))
     });
 
-    return extractData<UpdateResponse>(axios.put(url, params.data));
+    return extractData<Response>(axios.put(url, params.data));
   };
 
   const updateMany = (resource, params) => {
@@ -82,14 +72,14 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
       queryObject: { id: params.ids }
     });
 
-    return extractData<UpdateManyResponse>(axios.put(url, params.data));
+    return extractData<Response>(axios.put(url, params.data));
   };
 
   // CREATE
   const create = (resource, params) => {
     const url = makeUrl({ host, port, protocol, path: getPath(resource) });
 
-    return extractData<CreateResponse>(axios.post(url, params.data));
+    return extractData<Response>(axios.post(url, params.data));
   };
 
   // DELETE
@@ -101,7 +91,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
       path: getPath([resource, params.id].join("/"))
     });
 
-    return extractData<DeleteOneResponse>(axios.delete(url));
+    return extractData<Response>(axios.delete(url));
   };
 
   const deleteMany = (resource, params) => {
@@ -113,7 +103,7 @@ export const createBaseRestDataProvider: CreateDataProvider = ({
       queryObject: { id: params.ids }
     });
 
-    return extractData<DeleteManyResponse>(axios.delete(url));
+    return extractData<Response>(axios.delete(url));
   };
 
   return {
