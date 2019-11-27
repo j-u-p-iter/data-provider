@@ -1,1 +1,1 @@
-export { createGraphQLDataProvider } from './createGraphQLDataProvider';
+export { createGraphQLDataProvider } from "./createGraphQLDataProvider";
