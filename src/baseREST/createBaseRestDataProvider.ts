@@ -3,9 +3,9 @@ import axios from "axios";
 
 import { extractData } from "../helpers";
 
-import { CreateDataProvider, Response } from "../types";
+import { CreateBaseRESTDataProvider, Response } from "../types";
 
-export const createBaseRestDataProvider: CreateDataProvider = ({
+export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
   host,
   port = null,
   protocol = "https",

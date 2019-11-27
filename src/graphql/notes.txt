@@ -1,0 +1,108 @@
+INTRO
+We'll use this package https://github.com/acro5piano/typed-graphqlify to dimanically create queries/mutations/subscribtions.
+The main idea, is that we have dataProviderFactory, that gets schema as input and builds dataProvider, saving types in closure.
+This is how we can get access to types, during queries creation process.
+There's one downside - we'll have duplication of types on server and on client.
+
+
+Two features of GraphQL + Apollo union we should use:
+
+- caching data by Apollo (the main Apollo feauture)
+- fetch only necessary data 
+
+1. getList('someResource', { fieldsToRequest: ['id', 'title'] });
+
+Result:
+1. It should be query.
+2. Query should look like this (in Graphiql):
+
+query SomeResourceQuery {
+  someResource {
+    id
+    title
+  }
+}
+
+
+3. Method should have additional prop `fieldsToRequest` with array of props we want to request
+   This field currently is absent from original params types. We should add it. 
+
+4. Pseudo code: 
+
+import { query, types } from 'typed-graphqlify'
+
+const dataSchema = {
+  someResource: {
+    id, 
+    title,
+  }
+}
+
+cosnt getList = (someResource, { fieldsNamesToFetch }) => {
+  // this should be common util, that uses dataSchema under the hood
+  const paramsToFetch = prepareParamsToFetch(fieldsNamesToFetch)
+
+  const getListOfSomeResourcesQuery = query({
+    [someResource]: paramsToFetch,
+  });
+
+  return client.query({ query: getListOfSomeResourcesQuery })
+}
+
+
+
+
+
+2. getOne('someResource', { id: '1', fieldsToRequest: ['title'] });
+
+3. 
+
+Result:
+
+1. It should be query.
+2. Query should look like this (in Graphiql):
+
+query SomeResourceQuery($id: ID!) {
+  someResource(id: $id) {
+    title
+  }
+}
+
+3. Method should have additional prop `fieldsToRequest` with array of props we want to request
+   This field currently is absent from original params types. We should add it. 
+
+4. What do we need to add? 
+
+We need to:
+- generate queryname;
+- generate variables declarations with types (we need somehow to get types);
+- generate resorce name + passing arguments section; 
+- generate section with fields to request.
+- resource name should be singular (need method to prepare singular form of resource name. Let's use this tool for this purpose: https://github.com/blakeembrey/pluralize)
+
+5. Pseudo code: 
+
+import pluralize from 'pluralize'
+import { query, types } from 'typed-graphqlify'
+
+const dataSchema = {
+  someResource: {
+    id, 
+    title,
+  }
+}
+
+cosnt getOne = (someResource, { fieldsNamesToFetch }) => {
+  const resourceNameInSingularForm = pluralise.singular(someResource);
+
+  // this should be common util, that uses dataSchema under the hood
+  const paramsToFetch = prepareParamsToFetch(fieldsNamesToFetch)
+
+  const getListOfSomeResourcesQuery = query({
+    [someResource]: paramsToFetch,
+  });
+
+  return client.query({ query: getListOfSomeResourcesQuery })
+}
+
+

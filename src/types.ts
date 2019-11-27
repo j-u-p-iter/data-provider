@@ -46,11 +46,13 @@ export interface GetListParams {
     limit: number;
     offset: number;
   };
+  fieldsNamesToFetch?: string[];
 }
 
 // GET ONE
 export interface GetOneParams {
   id: Identifier;
+  fieldsNamesToFetch?: string[];
 }
 
 // GET MANY
@@ -104,9 +106,14 @@ export interface DataProvider {
   deleteMany: DataProviderMethod<DeleteManyParams, Response>;
 }
 
-export type CreateDataProvider = (params: {
+export type CreateBaseRESTDataProvider = (params: {
   host: string;
   protocol?: string;
   apiVersion?: string;
   port?: number | null;
+}) => DataProvider;
+
+export type CreateGraphQLDataProvider = (params: {
+  dataSchema: { [key: string]: any };
+  client: any;
 }) => DataProvider;
