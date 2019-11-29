@@ -79,7 +79,7 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
       `update${capitalizeFirstCharacter(pluralize.singular(resource))}`,
       params(
         {
-          $input: `${capitalizeFirstCharacter(
+          $input: `Add${capitalizeFirstCharacter(
             pluralize.singular(resource)
           )}Input!`
         },
@@ -95,7 +95,7 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
       mutation: gql`
         ${getSomeResourceQuery}
       `,
-      variables: { id, ...data }
+      variables: { input: { id, ...data } }
     });
 
     return prepareResponse(pluralize.singular(resource), response);
