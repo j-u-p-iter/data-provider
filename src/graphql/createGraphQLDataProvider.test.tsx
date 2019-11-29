@@ -254,8 +254,8 @@ describe("createGraphQLDataProvider", () => {
           request: {
             query: UPDATE_USER_MUTATION,
             variables: {
+              id: "12345",
               input: {
-                id: "12345",
                 name: "new name"
               }
             }

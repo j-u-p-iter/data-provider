@@ -95,7 +95,7 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
       mutation: gql`
         ${getSomeResourceQuery}
       `,
-      variables: { input: { id, ...data } }
+      variables: { id, input: data }
     });
 
     return prepareResponse(pluralize.singular(resource), response);
