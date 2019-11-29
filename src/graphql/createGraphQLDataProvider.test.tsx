@@ -437,4 +437,104 @@ describe("createGraphQLDataProvider", () => {
       );
     });
   });
+
+  describe("delete", () => {
+    let renderComponent;
+    let user;
+
+    beforeAll(() => {
+      user = {
+        id: "1",
+        name: "some name"
+      };
+
+      const DELETE_USER_MUTATION = gql`
+        mutation deleteUser($id: ID!) {
+          deleteUser(id: $id) {
+            id
+            name
+          }
+        }
+      `;
+
+      const mocks = [
+        {
+          request: {
+            query: DELETE_USER_MUTATION,
+            variables: { id: user.id }
+          },
+          result: { data: { user } }
+        }
+      ];
+
+      const TestComponent = () => {
+        const [data, setData] = useState<any>({});
+        const client = useApolloClient();
+
+        const dataProvider = useMemo(() => {
+          return createGraphQLDataProvider({
+            dataSchema,
+            client
+          });
+        }, []);
+
+        const handleClick = async () => {
+          const response = await dataProvider.delete("users", {
+            id: user.id,
+            fieldsNamesToFetch: ["id", "name"]
+          });
+
+          setData(response);
+        };
+
+        return (
+          <div>
+            <div data-testid="message">{data.message}</div>
+            {data.success ? (
+              <ul data-testid="data-list">
+                {data.data.items.map(({ id, name }) => {
+                  return (
+                    <li key={id} data-testid="data-item">
+                      <span data-testid="id">{id}</span>
+                      <span data-testid="name">{name}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
+            <button data-testid="button" onClick={handleClick}>
+              Click me
+            </button>
+          </div>
+        );
+      };
+
+      renderComponent = () => {
+        return render(
+          <MockedProvider mocks={mocks} addTypename={false}>
+            <TestComponent />
+          </MockedProvider>
+        );
+      };
+    });
+
+    it("sends request and returns correct result", async () => {
+      const { queryByTestId, container } = renderComponent();
+
+      const button = queryByTestId("button");
+
+      expect(queryByTestId("data-list")).toBe(null);
+
+      fireEvent.click(button);
+
+      await waitForDomChange({ container });
+
+      expect(queryByTestId("id").textContent).toBe(user.id);
+      expect(queryByTestId("name").textContent).toBe(user.name);
+
+      expect(queryByTestId("message").textContent).toBe(
+        "user has been loaded with success"
+      );
+    });
+  });
 });

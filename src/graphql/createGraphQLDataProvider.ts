@@ -99,8 +99,6 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
       variables: { id, input: data }
     });
 
-    console.log(response);
-
     return prepareResponse(pluralize.singular(resource), response);
   };
 
@@ -133,7 +131,35 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
       variables: { input: data }
     });
 
-    console.log(response);
+    return prepareResponse(pluralize.singular(resource), response);
+  };
+
+  const deleteOne = async (resource, { id, fieldsNamesToFetch }) => {
+    const paramsToFetch = prepareParamsToFetch(
+      pluralize.singular(resource),
+      fieldsNamesToFetch
+    );
+
+    const deleteResourceMutation = mutation(
+      `delete${capitalizeFirstCharacter(pluralize.singular(resource))}`,
+      params(
+        {
+          $id: "ID!"
+        },
+        {
+          [`delete${capitalizeFirstCharacter(
+            pluralize.singular(resource)
+          )}`]: params({ id: "$id" }, paramsToFetch)
+        }
+      )
+    );
+
+    const response = await client.mutate({
+      mutation: gql`
+        ${deleteResourceMutation}
+      `,
+      variables: { id }
+    });
 
     return prepareResponse(pluralize.singular(resource), response);
   };
@@ -142,6 +168,7 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
     getList,
     getOne,
     update,
-    create
+    create,
+    delete: deleteOne
   };
 };
