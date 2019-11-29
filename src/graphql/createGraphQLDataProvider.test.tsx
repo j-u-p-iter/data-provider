@@ -22,8 +22,8 @@ describe("createGraphQLDataProvider", () => {
   });
 
   describe("getList", () => {
-    let renderComponent;
     let users;
+    let renderComponent;
 
     beforeAll(() => {
       users = [
