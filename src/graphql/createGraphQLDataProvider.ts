@@ -99,12 +99,49 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
       variables: { id, input: data }
     });
 
+    console.log(response);
+
+    return prepareResponse(pluralize.singular(resource), response);
+  };
+
+  const create = async (resource, { data, fieldsNamesToFetch }) => {
+    const paramsToFetch = prepareParamsToFetch(
+      pluralize.singular(resource),
+      fieldsNamesToFetch
+    );
+
+    const createResourceMutation = mutation(
+      `create${capitalizeFirstCharacter(pluralize.singular(resource))}`,
+      params(
+        {
+          $input: `Create${capitalizeFirstCharacter(
+            pluralize.singular(resource)
+          )}Input!`
+        },
+        {
+          [`create${capitalizeFirstCharacter(
+            pluralize.singular(resource)
+          )}`]: params({ input: "$input" }, paramsToFetch)
+        }
+      )
+    );
+
+    const response = await client.mutate({
+      mutation: gql`
+        ${createResourceMutation}
+      `,
+      variables: { input: data }
+    });
+
+    console.log(response);
+
     return prepareResponse(pluralize.singular(resource), response);
   };
 
   return {
     getList,
     getOne,
-    update
+    update,
+    create
   };
 };
