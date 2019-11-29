@@ -241,8 +241,8 @@ describe("createGraphQLDataProvider", () => {
       };
 
       const UPDATE_USER_MUTATION = gql`
-        mutation updateUser($input: AddUserInput!) {
-          updateUser(input: $input) {
+        mutation updateUser($id: ID!, $input: UpdateUserInput!) {
+          updateUser(id: $id, input: $input) {
             id
             name
           }

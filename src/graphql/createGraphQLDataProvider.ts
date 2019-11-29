@@ -79,14 +79,15 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
       `update${capitalizeFirstCharacter(pluralize.singular(resource))}`,
       params(
         {
-          $input: `Add${capitalizeFirstCharacter(
+          $id: "ID!",
+          $input: `Update${capitalizeFirstCharacter(
             pluralize.singular(resource)
           )}Input!`
         },
         {
           [`update${capitalizeFirstCharacter(
             pluralize.singular(resource)
-          )}`]: params({ input: "$input" }, paramsToFetch)
+          )}`]: params({ id: "$id", input: "$input" }, paramsToFetch)
         }
       )
     );
