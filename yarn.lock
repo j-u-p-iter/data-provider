@@ -800,10 +800,10 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
-"@j.u.p.iter/jupiter-scripts@^1.12.0":
-  version "1.12.0"
-  resolved "https://registry.yarnpkg.com/@j.u.p.iter/jupiter-scripts/-/jupiter-scripts-1.12.0.tgz#938db0f86ce37775487241e794666c20aed924c2"
-  integrity sha512-q5KXTFGPHFEsgXT5kRGl/oukOP6fx6QPwzQlTOcnQ5pa49sx8eHoOzok32lFIhZYBc7M439P+sAFBl9H1JpYCA==
+"@j.u.p.iter/jupiter-scripts@^1.13.0":
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/@j.u.p.iter/jupiter-scripts/-/jupiter-scripts-1.13.0.tgz#d76c143829e286ad1dc704e2afe9eb58ef1a3956"
+  integrity sha512-R8pxuj8W7MY18a4a+ShzVTm4tXBBxONDt3HpLvbUDrX5BdNgJgqkUq9tjW4Les8ekG+3ARQtU4sTQfx1YvxLGw==
   dependencies:
     "@babel/cli" "^7.0.0"
     "@babel/core" "^7.0.0"
@@ -841,7 +841,7 @@
     tslint "^5.11.0"
     tslint-config-prettier "^1.17.0"
     tslint-plugin-prettier "^2.0.1"
-    typescript "^3.1.6"
+    typescript "^3.7.2"
     which "^1.3.1"
     yargs-parser "^10.1.0"
 
@@ -6591,7 +6591,7 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^3.1.6:
+typescript@^3.7.2:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.7.2.tgz#27e489b95fa5909445e9fef5ee48d81697ad18fb"
   integrity sha512-ml7V7JfiN2Xwvcer+XAf2csGO1bPBdRbFCkYBczNZggrBZ9c7G3riSUeJmqEU5uOtXNPMhE3n+R4FA/3YOAWOQ==

@@ -2,10 +2,12 @@ import gql from "graphql-tag";
 import pluralize from "pluralize";
 import { mutation, params, query } from "typed-graphqlify";
 
+import { CreateGraphQLDataProvider } from "../types";
+
 const capitalizeFirstCharacter = (data: string): string =>
   `${data[0].toUpperCase()}${data.slice(1)}`;
 
-const prepareResponse = (resource, { data }) => {
+const prepareResponse = (resource, { data }): any => {
   return {
     success: true,
     message: `${resource} has been loaded with success`,
@@ -15,16 +17,27 @@ const prepareResponse = (resource, { data }) => {
   };
 };
 
-export const createGraphQLDataProvider = ({ dataSchema, client }) => {
+export const createGraphQLDataProvider: CreateGraphQLDataProvider = ({
+  dataSchema,
+  client
+}) => {
   const prepareParamsToFetch = (resource, fieldsNames) => {
-    return fieldsNames.reduce((totalResult, currentFieldName) => {
+    let fieldsNamesToFetch = fieldsNames;
+
+    if (!fieldsNames.length) {
+      fieldsNamesToFetch = Object.keys(
+        dataSchema[pluralize.singular(resource)]
+      );
+    }
+
+    return fieldsNamesToFetch.reduce((totalResult, currentFieldName) => {
       totalResult[currentFieldName] = dataSchema[resource][currentFieldName];
 
       return totalResult;
     }, {});
   };
 
-  const getList = async (resource, { fieldsNamesToFetch }) => {
+  const getList = async (resource, { fieldsNamesToFetch = [] } = {}) => {
     const paramsToFetch = prepareParamsToFetch(
       pluralize.singular(resource),
       fieldsNamesToFetch
@@ -46,7 +59,7 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
     return prepareResponse(resource, data);
   };
 
-  const getOne = async (resource, { id, fieldsNamesToFetch }) => {
+  const getOne = async (resource, { id, fieldsNamesToFetch = [] }) => {
     const paramsToFetch = prepareParamsToFetch(
       pluralize.singular(resource),
       fieldsNamesToFetch
@@ -69,13 +82,13 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
     return prepareResponse(pluralize.singular(resource), data);
   };
 
-  const update = async (resource, { id, data, fieldsNamesToFetch }) => {
+  const update = async (resource, { id, data, fieldsNamesToFetch = [] }) => {
     const paramsToFetch = prepareParamsToFetch(
       pluralize.singular(resource),
       fieldsNamesToFetch
     );
 
-    const getSomeResourceQuery = mutation(
+    const updateResourceMutation = mutation(
       `update${capitalizeFirstCharacter(pluralize.singular(resource))}`,
       params(
         {
@@ -94,7 +107,7 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
 
     const response = await client.mutate({
       mutation: gql`
-        ${getSomeResourceQuery}
+        ${updateResourceMutation}
       `,
       variables: { id, input: data }
     });
@@ -102,7 +115,7 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
     return prepareResponse(pluralize.singular(resource), response);
   };
 
-  const create = async (resource, { data, fieldsNamesToFetch }) => {
+  const create = async (resource, { data, fieldsNamesToFetch = [] }) => {
     const paramsToFetch = prepareParamsToFetch(
       pluralize.singular(resource),
       fieldsNamesToFetch
@@ -134,7 +147,7 @@ export const createGraphQLDataProvider = ({ dataSchema, client }) => {
     return prepareResponse(pluralize.singular(resource), response);
   };
 
-  const deleteOne = async (resource, { id, fieldsNamesToFetch }) => {
+  const deleteOne = async (resource, { id, fieldsNamesToFetch = [] }) => {
     const paramsToFetch = prepareParamsToFetch(
       pluralize.singular(resource),
       fieldsNamesToFetch

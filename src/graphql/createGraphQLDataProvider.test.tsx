@@ -1,4 +1,9 @@
-import { fireEvent, render, waitForDomChange } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  waitForDomChange
+} from "@testing-library/react";
 import gql from "graphql-tag";
 import * as React from "react";
 import { types } from "typed-graphqlify";
@@ -7,10 +12,11 @@ import { useApolloClient } from "@apollo/react-hooks";
 import { MockedProvider } from "@apollo/react-testing";
 import { createGraphQLDataProvider } from "./createGraphQLDataProvider";
 
-const { useState, useMemo } = React;
+const { useState } = React;
 
 describe("createGraphQLDataProvider", () => {
   let dataSchema;
+  let renderComponent;
 
   beforeAll(() => {
     dataSchema = {
@@ -21,58 +27,34 @@ describe("createGraphQLDataProvider", () => {
     };
   });
 
+  afterEach(() => {
+    cleanup();
+  });
+
   describe("getList", () => {
-    let users;
-    let renderComponent;
-
     beforeAll(() => {
-      users = [
-        {
-          id: "1",
-          name: "some name"
-        },
-        {
-          id: "2",
-          name: "one more name"
-        }
-      ];
-
-      const GET_USERS_QUERY = gql`
-        query getUsers {
-          users {
-            id
-            name
-          }
-        }
-      `;
-
-      const mocks = [
-        {
-          request: {
-            query: GET_USERS_QUERY
-          },
-          result: { data: { users } }
-        }
-      ];
-
-      const TestComponent = () => {
-        const [data, setData] = useState<any>({});
+      const DataProvider: React.FC<any> = ({
+        dataSchema: dataSchemaFromProps,
+        runAction
+      }) => {
         const client = useApolloClient();
 
-        const dataProvider = useMemo(() => {
-          return createGraphQLDataProvider({
-            dataSchema,
-            client
-          });
-        }, []);
+        const dataProvider = createGraphQLDataProvider({
+          dataSchema: dataSchemaFromProps,
+          client
+        });
 
-        const handleClick = async () => {
-          const response = await dataProvider.getList("users", {
-            fieldsNamesToFetch: ["id", "name"]
-          });
+        const handleClick = async callback => {
+          const response = await runAction(dataProvider);
 
-          setData(response);
+          callback(response);
         };
+
+        return <TestComponent onClick={handleClick} />;
+      };
+
+      const TestComponent: React.FC<any> = ({ onClick }) => {
+        const [data, setData] = useState<any>({});
 
         return (
           <div>
@@ -81,7 +63,7 @@ describe("createGraphQLDataProvider", () => {
               <ul data-testid="data-list">
                 {data.data.items.map(({ id, name }) => {
                   return (
-                    <li key={id} data-testid="data-item">
+                    <li key={id || name} data-testid="data-item">
                       <span data-testid="id">{id}</span>
                       <span data-testid="name">{name}</span>
                     </li>
@@ -89,452 +71,649 @@ describe("createGraphQLDataProvider", () => {
                 })}
               </ul>
             ) : null}
-            <button data-testid="button" onClick={handleClick}>
+            <button data-testid="button" onClick={() => onClick(setData)}>
               Click me
             </button>
           </div>
         );
       };
 
-      renderComponent = () => {
+      renderComponent = ({
+        dataSchema: dataSchemaFromProps,
+        runAction,
+        mocks
+      }) => {
         return render(
           <MockedProvider mocks={mocks} addTypename={false}>
-            <TestComponent />
+            <DataProvider
+              dataSchema={dataSchemaFromProps}
+              runAction={runAction}
+            />
           </MockedProvider>
         );
       };
     });
 
-    it("sends request and returns correct result", async () => {
-      const { queryByTestId, queryAllByTestId, container } = renderComponent();
+    describe("with fieldsNamesToFetch", () => {
+      let mocks;
+      let users;
 
-      const button = queryByTestId("button");
+      beforeAll(() => {
+        users = [
+          {
+            name: "some name"
+          },
+          {
+            name: "one more name"
+          }
+        ];
 
-      expect(queryByTestId("data-list")).toBe(null);
+        const GET_USERS_QUERY = gql`
+          query getUsers {
+            users {
+              name
+            }
+          }
+        `;
 
-      fireEvent.click(button);
+        mocks = [
+          {
+            request: {
+              query: GET_USERS_QUERY
+            },
+            result: { data: { users } }
+          }
+        ];
+      });
 
-      await waitForDomChange({ container });
+      it("sends request and returns correct result", async () => {
+        const runAction = dataProvider =>
+          dataProvider.getList("users", { fieldsNamesToFetch: ["name"] });
 
-      expect(queryAllByTestId("id")[0].textContent).toBe(users[0].id);
-      expect(queryAllByTestId("name")[0].textContent).toBe(users[0].name);
+        const { queryByTestId, queryAllByTestId, container } = renderComponent({
+          dataSchema,
+          runAction,
+          mocks
+        });
 
-      expect(queryAllByTestId("id")[1].textContent).toBe(users[1].id);
-      expect(queryAllByTestId("name")[1].textContent).toBe(users[1].name);
+        const button = queryByTestId("button");
 
-      expect(queryByTestId("message").textContent).toBe(
-        "users has been loaded with success"
-      );
+        expect(queryByTestId("data-list")).toBe(null);
+
+        fireEvent.click(button);
+
+        await waitForDomChange({ container });
+
+        expect(queryAllByTestId("id")[0].textContent).toBe("");
+        expect(queryAllByTestId("name")[0].textContent).toBe(users[0].name);
+
+        expect(queryAllByTestId("id")[1].textContent).toBe("");
+        expect(queryAllByTestId("name")[1].textContent).toBe(users[1].name);
+
+        expect(queryByTestId("message").textContent).toBe(
+          "users has been loaded with success"
+        );
+      });
+    });
+
+    describe("without fieldsNamesToFetch", () => {
+      let mocks;
+      let users;
+
+      beforeAll(() => {
+        users = [
+          {
+            id: "1",
+            name: "some name"
+          },
+          {
+            id: "2",
+            name: "one more name"
+          }
+        ];
+
+        const GET_USERS_QUERY = gql`
+          query getUsers {
+            users {
+              id
+              name
+            }
+          }
+        `;
+
+        mocks = [
+          {
+            request: {
+              query: GET_USERS_QUERY
+            },
+            result: { data: { users } }
+          }
+        ];
+      });
+
+      it("sends request and returns correct result", async () => {
+        const runAction = dataProvider => dataProvider.getList("users");
+
+        const { queryByTestId, queryAllByTestId, container } = renderComponent({
+          dataSchema,
+          runAction,
+          mocks
+        });
+
+        const button = queryByTestId("button");
+
+        expect(queryByTestId("data-list")).toBe(null);
+
+        fireEvent.click(button);
+
+        await waitForDomChange({ container });
+
+        expect(queryAllByTestId("id")[0].textContent).toBe(users[0].id);
+        expect(queryAllByTestId("name")[0].textContent).toBe(users[0].name);
+
+        expect(queryAllByTestId("id")[1].textContent).toBe(users[1].id);
+        expect(queryAllByTestId("name")[1].textContent).toBe(users[1].name);
+
+        expect(queryByTestId("message").textContent).toBe(
+          "users has been loaded with success"
+        );
+      });
     });
   });
 
   describe("getOne", () => {
-    let renderComponent;
     let user;
+    let mocks;
 
-    beforeAll(() => {
-      user = {
-        id: "1",
-        name: "some name"
-      };
-
-      const GET_USER_QUERY = gql`
-        query getUser {
-          user(id: 12345) {
-            id
-            name
-          }
-        }
-      `;
-
-      const mocks = [
-        {
-          request: {
-            query: GET_USER_QUERY,
-            variables: {
-              id: "12345"
-            }
-          },
-          result: { data: { user } }
-        }
-      ];
-
-      const TestComponent = () => {
-        const [data, setData] = useState<any>({});
-        const client = useApolloClient();
-
-        const dataProvider = useMemo(() => {
-          return createGraphQLDataProvider({
-            dataSchema,
-            client
-          });
-        }, []);
-
-        const handleClick = async () => {
-          const response = await dataProvider.getOne("users", {
-            id: "12345",
-            fieldsNamesToFetch: ["id", "name"]
-          });
-
-          setData(response);
+    describe("with fieldsNamesToFetch", () => {
+      beforeAll(() => {
+        user = {
+          id: "12345",
+          name: "some name"
         };
 
-        return (
-          <div>
-            <div data-testid="message">{data.message}</div>
-            {data.success ? (
-              <ul data-testid="data-list">
-                {data.data.items.map(({ id, name }) => {
-                  return (
-                    <li key={id} data-testid="data-item">
-                      <span data-testid="id">{id}</span>
-                      <span data-testid="name">{name}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : null}
-            <button data-testid="button" onClick={handleClick}>
-              Click me
-            </button>
-          </div>
-        );
-      };
+        const GET_USER_QUERY = gql`
+          query getUser {
+            user(id: 12345) {
+              name
+            }
+          }
+        `;
 
-      renderComponent = () => {
-        return render(
-          <MockedProvider mocks={mocks} addTypename={false}>
-            <TestComponent />
-          </MockedProvider>
+        mocks = [
+          {
+            request: {
+              query: GET_USER_QUERY,
+              variables: {
+                id: user.id
+              }
+            },
+            result: { data: { user: { name: user.name } } }
+          }
+        ];
+      });
+
+      it("sends request and returns correct result", async () => {
+        const runAction = dataProvider =>
+          dataProvider.getOne("users", {
+            id: user.id,
+            fieldsNamesToFetch: ["name"]
+          });
+
+        const { queryByTestId, container } = renderComponent({
+          dataSchema,
+          runAction,
+          mocks
+        });
+
+        const button = queryByTestId("button");
+
+        expect(queryByTestId("data-list")).toBe(null);
+
+        fireEvent.click(button);
+
+        await waitForDomChange({ container });
+
+        expect(queryByTestId("id").textContent).toBe("");
+        expect(queryByTestId("name").textContent).toBe(user.name);
+
+        expect(queryByTestId("message").textContent).toBe(
+          "user has been loaded with success"
         );
-      };
+      });
     });
 
-    it("sends request and returns correct result", async () => {
-      const { queryByTestId, container } = renderComponent();
+    describe("without fieldsNamesToFetch", () => {
+      beforeAll(() => {
+        user = {
+          id: "1",
+          name: "some name"
+        };
 
-      const button = queryByTestId("button");
+        const GET_USER_QUERY = gql`
+          query getUser {
+            user(id: 12345) {
+              id
+              name
+            }
+          }
+        `;
 
-      expect(queryByTestId("data-list")).toBe(null);
+        mocks = [
+          {
+            request: {
+              query: GET_USER_QUERY,
+              variables: {
+                id: "12345"
+              }
+            },
+            result: { data: { user } }
+          }
+        ];
+      });
 
-      fireEvent.click(button);
+      it("sends request and returns correct result", async () => {
+        const runAction = dataProvider =>
+          dataProvider.getOne("users", { id: "12345" });
 
-      await waitForDomChange({ container });
+        const { queryByTestId, container } = renderComponent({
+          dataSchema,
+          runAction,
+          mocks
+        });
 
-      expect(queryByTestId("id").textContent).toBe(user.id);
-      expect(queryByTestId("name").textContent).toBe(user.name);
+        const button = queryByTestId("button");
 
-      expect(queryByTestId("message").textContent).toBe(
-        "user has been loaded with success"
-      );
+        expect(queryByTestId("data-list")).toBe(null);
+
+        fireEvent.click(button);
+
+        await waitForDomChange({ container });
+
+        expect(queryByTestId("id").textContent).toBe(user.id);
+        expect(queryByTestId("name").textContent).toBe(user.name);
+
+        expect(queryByTestId("message").textContent).toBe(
+          "user has been loaded with success"
+        );
+      });
     });
   });
 
   describe("update", () => {
-    let renderComponent;
-    let user;
+    describe("with fieldsNamesToFetch", () => {
+      let user;
+      let mocks;
+      let newName;
 
-    beforeAll(() => {
-      user = {
-        id: "1",
-        name: "some name"
-      };
-
-      const UPDATE_USER_MUTATION = gql`
-        mutation updateUser($id: ID!, $input: UpdateUserInput!) {
-          updateUser(id: $id, input: $input) {
-            id
-            name
-          }
-        }
-      `;
-
-      const mocks = [
-        {
-          request: {
-            query: UPDATE_USER_MUTATION,
-            variables: {
-              id: "12345",
-              input: {
-                name: "new name"
-              }
-            }
-          },
-          result: { data: { user } }
-        }
-      ];
-
-      const TestComponent = () => {
-        const [data, setData] = useState<any>({});
-        const client = useApolloClient();
-
-        const dataProvider = useMemo(() => {
-          return createGraphQLDataProvider({
-            dataSchema,
-            client
-          });
-        }, []);
-
-        const handleClick = async () => {
-          const response = await dataProvider.update("users", {
-            id: "12345",
-            data: { name: "new name" },
-            fieldsNamesToFetch: ["id", "name"]
-          });
-
-          setData(response);
+      beforeAll(() => {
+        newName = "new name";
+        user = {
+          id: "12345",
+          name: "some name"
         };
 
-        return (
-          <div>
-            <div data-testid="message">{data.message}</div>
-            {data.success ? (
-              <ul data-testid="data-list">
-                {data.data.items.map(({ id, name }) => {
-                  return (
-                    <li key={id} data-testid="data-item">
-                      <span data-testid="id">{id}</span>
-                      <span data-testid="name">{name}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : null}
-            <button data-testid="button" onClick={handleClick}>
-              Click me
-            </button>
-          </div>
-        );
-      };
+        const UPDATE_USER_MUTATION = gql`
+          mutation updateUser($id: ID!, $input: UpdateUserInput!) {
+            updateUser(id: $id, input: $input) {
+              id
+            }
+          }
+        `;
 
-      renderComponent = () => {
-        return render(
-          <MockedProvider mocks={mocks} addTypename={false}>
-            <TestComponent />
-          </MockedProvider>
+        mocks = [
+          {
+            request: {
+              query: UPDATE_USER_MUTATION,
+              variables: {
+                id: user.id,
+                input: {
+                  name: newName
+                }
+              }
+            },
+            result: { data: { user: { id: user.id } } }
+          }
+        ];
+      });
+
+      it("sends request and returns correct result", async () => {
+        const runAction = dataProvider =>
+          dataProvider.update("users", {
+            id: user.id,
+            data: { name: newName },
+            fieldsNamesToFetch: ["id"]
+          });
+
+        const { queryByTestId, container } = renderComponent({
+          mocks,
+          dataSchema,
+          runAction
+        });
+
+        const button = queryByTestId("button");
+
+        expect(queryByTestId("data-list")).toBe(null);
+
+        fireEvent.click(button);
+
+        await waitForDomChange({ container });
+
+        expect(queryByTestId("id").textContent).toBe(user.id);
+        expect(queryByTestId("name").textContent).toBe("");
+
+        expect(queryByTestId("message").textContent).toBe(
+          "user has been loaded with success"
         );
-      };
+      });
     });
 
-    it("sends request and returns correct result", async () => {
-      const { queryByTestId, container } = renderComponent();
+    describe("without fieldsNamesToFetch", () => {
+      let user;
+      let mocks;
+      let newName;
 
-      const button = queryByTestId("button");
+      beforeAll(() => {
+        newName = "new name";
+        user = {
+          id: "12345",
+          name: "some name"
+        };
 
-      expect(queryByTestId("data-list")).toBe(null);
+        const UPDATE_USER_MUTATION = gql`
+          mutation updateUser($id: ID!, $input: UpdateUserInput!) {
+            updateUser(id: $id, input: $input) {
+              id
+              name
+            }
+          }
+        `;
 
-      fireEvent.click(button);
+        mocks = [
+          {
+            request: {
+              query: UPDATE_USER_MUTATION,
+              variables: {
+                id: user.id,
+                input: {
+                  name: newName
+                }
+              }
+            },
+            result: { data: { user } }
+          }
+        ];
+      });
 
-      await waitForDomChange({ container });
+      it("sends request and returns correct result", async () => {
+        const runAction = dataProvider =>
+          dataProvider.update("users", {
+            id: user.id,
+            data: { name: newName }
+          });
 
-      expect(queryByTestId("id").textContent).toBe(user.id);
-      expect(queryByTestId("name").textContent).toBe(user.name);
+        const { queryByTestId, container } = renderComponent({
+          mocks,
+          dataSchema,
+          runAction
+        });
 
-      expect(queryByTestId("message").textContent).toBe(
-        "user has been loaded with success"
-      );
+        const button = queryByTestId("button");
+
+        expect(queryByTestId("data-list")).toBe(null);
+
+        fireEvent.click(button);
+
+        await waitForDomChange({ container });
+
+        expect(queryByTestId("id").textContent).toBe(user.id);
+        expect(queryByTestId("name").textContent).toBe(user.name);
+
+        expect(queryByTestId("message").textContent).toBe(
+          "user has been loaded with success"
+        );
+      });
     });
   });
 
   describe("create", () => {
-    let renderComponent;
-    let user;
+    describe("with fieldsNamesToFetch", () => {
+      let user;
+      let mocks;
 
-    beforeAll(() => {
-      user = {
-        id: "1",
-        name: "some name"
-      };
-
-      const CREATE_USER_MUTATION = gql`
-        mutation createUser($input: CreateUserInput!) {
-          createUser(input: $input) {
-            id
-            name
-          }
-        }
-      `;
-
-      const mocks = [
-        {
-          request: {
-            query: CREATE_USER_MUTATION,
-            variables: {
-              input: { name: user.name }
-            }
-          },
-          result: { data: { user } }
-        }
-      ];
-
-      const TestComponent = () => {
-        const [data, setData] = useState<any>({});
-        const client = useApolloClient();
-
-        const dataProvider = useMemo(() => {
-          return createGraphQLDataProvider({
-            dataSchema,
-            client
-          });
-        }, []);
-
-        const handleClick = async () => {
-          const response = await dataProvider.create("users", {
-            data: { name: user.name },
-            fieldsNamesToFetch: ["id", "name"]
-          });
-
-          setData(response);
+      beforeAll(() => {
+        user = {
+          name: "some name"
         };
 
-        return (
-          <div>
-            <div data-testid="message">{data.message}</div>
-            {data.success ? (
-              <ul data-testid="data-list">
-                {data.data.items.map(({ id, name }) => {
-                  return (
-                    <li key={id} data-testid="data-item">
-                      <span data-testid="id">{id}</span>
-                      <span data-testid="name">{name}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : null}
-            <button data-testid="button" onClick={handleClick}>
-              Click me
-            </button>
-          </div>
-        );
-      };
+        const CREATE_USER_MUTATION = gql`
+          mutation createUser($input: CreateUserInput!) {
+            createUser(input: $input) {
+              name
+            }
+          }
+        `;
 
-      renderComponent = () => {
-        return render(
-          <MockedProvider mocks={mocks} addTypename={false}>
-            <TestComponent />
-          </MockedProvider>
+        mocks = [
+          {
+            request: {
+              query: CREATE_USER_MUTATION,
+              variables: {
+                input: { name: user.name }
+              }
+            },
+            result: { data: { user: { name: user.name } } }
+          }
+        ];
+      });
+
+      it("sends request and returns correct result", async () => {
+        const runAction = async dataProvider => {
+          return await dataProvider.create("users", {
+            data: { name: user.name },
+            fieldsNamesToFetch: ["name"]
+          });
+        };
+
+        const { queryByTestId, container } = renderComponent({
+          runAction,
+          mocks,
+          dataSchema
+        });
+
+        const button = queryByTestId("button");
+
+        expect(queryByTestId("data-list")).toBe(null);
+
+        fireEvent.click(button);
+
+        await waitForDomChange({ container });
+
+        expect(queryByTestId("id").textContent).toBe("");
+        expect(queryByTestId("name").textContent).toBe(user.name);
+
+        expect(queryByTestId("message").textContent).toBe(
+          "user has been loaded with success"
         );
-      };
+      });
     });
 
-    it("sends request and returns correct result", async () => {
-      const { queryByTestId, container } = renderComponent();
+    describe("without fieldsNamesToFetch", () => {
+      let user;
+      let mocks;
 
-      const button = queryByTestId("button");
+      beforeAll(() => {
+        user = {
+          id: "1",
+          name: "some name"
+        };
 
-      expect(queryByTestId("data-list")).toBe(null);
+        const CREATE_USER_MUTATION = gql`
+          mutation createUser($input: CreateUserInput!) {
+            createUser(input: $input) {
+              id
+              name
+            }
+          }
+        `;
 
-      fireEvent.click(button);
+        mocks = [
+          {
+            request: {
+              query: CREATE_USER_MUTATION,
+              variables: {
+                input: { name: user.name }
+              }
+            },
+            result: { data: { user } }
+          }
+        ];
+      });
 
-      await waitForDomChange({ container });
+      it("sends request and returns correct result", async () => {
+        const runAction = async dataProvider => {
+          return await dataProvider.create("users", {
+            data: { name: user.name }
+          });
+        };
 
-      expect(queryByTestId("id").textContent).toBe(user.id);
-      expect(queryByTestId("name").textContent).toBe(user.name);
+        const { queryByTestId, container } = renderComponent({
+          runAction,
+          mocks,
+          dataSchema
+        });
 
-      expect(queryByTestId("message").textContent).toBe(
-        "user has been loaded with success"
-      );
+        const button = queryByTestId("button");
+
+        expect(queryByTestId("data-list")).toBe(null);
+
+        fireEvent.click(button);
+
+        await waitForDomChange({ container });
+
+        expect(queryByTestId("id").textContent).toBe(user.id);
+        expect(queryByTestId("name").textContent).toBe(user.name);
+
+        expect(queryByTestId("message").textContent).toBe(
+          "user has been loaded with success"
+        );
+      });
     });
   });
 
   describe("delete", () => {
-    let renderComponent;
-    let user;
+    describe("with fieldsNamesToFetch", () => {
+      let mocks;
+      let user;
 
-    beforeAll(() => {
-      user = {
-        id: "1",
-        name: "some name"
-      };
-
-      const DELETE_USER_MUTATION = gql`
-        mutation deleteUser($id: ID!) {
-          deleteUser(id: $id) {
-            id
-            name
-          }
-        }
-      `;
-
-      const mocks = [
-        {
-          request: {
-            query: DELETE_USER_MUTATION,
-            variables: { id: user.id }
-          },
-          result: { data: { user } }
-        }
-      ];
-
-      const TestComponent = () => {
-        const [data, setData] = useState<any>({});
-        const client = useApolloClient();
-
-        const dataProvider = useMemo(() => {
-          return createGraphQLDataProvider({
-            dataSchema,
-            client
-          });
-        }, []);
-
-        const handleClick = async () => {
-          const response = await dataProvider.delete("users", {
-            id: user.id,
-            fieldsNamesToFetch: ["id", "name"]
-          });
-
-          setData(response);
+      beforeAll(() => {
+        user = {
+          id: "1",
+          name: "some name"
         };
 
-        return (
-          <div>
-            <div data-testid="message">{data.message}</div>
-            {data.success ? (
-              <ul data-testid="data-list">
-                {data.data.items.map(({ id, name }) => {
-                  return (
-                    <li key={id} data-testid="data-item">
-                      <span data-testid="id">{id}</span>
-                      <span data-testid="name">{name}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : null}
-            <button data-testid="button" onClick={handleClick}>
-              Click me
-            </button>
-          </div>
-        );
-      };
+        const DELETE_USER_MUTATION = gql`
+          mutation deleteUser($id: ID!) {
+            deleteUser(id: $id) {
+              id
+            }
+          }
+        `;
 
-      renderComponent = () => {
-        return render(
-          <MockedProvider mocks={mocks} addTypename={false}>
-            <TestComponent />
-          </MockedProvider>
+        mocks = [
+          {
+            request: {
+              query: DELETE_USER_MUTATION,
+              variables: { id: user.id }
+            },
+            result: { data: { user: { id: user.id } } }
+          }
+        ];
+      });
+
+      it("sends request and returns correct result", async () => {
+        const runAction = dataProvider =>
+          dataProvider.delete("users", {
+            id: user.id,
+            fieldsNamesToFetch: ["id"]
+          });
+        const { queryByTestId, container } = renderComponent({
+          dataSchema,
+          mocks,
+          runAction
+        });
+
+        const button = queryByTestId("button");
+
+        expect(queryByTestId("data-list")).toBe(null);
+
+        fireEvent.click(button);
+
+        await waitForDomChange({ container });
+
+        expect(queryByTestId("id").textContent).toBe(user.id);
+        expect(queryByTestId("name").textContent).toBe("");
+
+        expect(queryByTestId("message").textContent).toBe(
+          "user has been loaded with success"
         );
-      };
+      });
     });
 
-    it("sends request and returns correct result", async () => {
-      const { queryByTestId, container } = renderComponent();
+    describe("without fieldsNamesToFetch", () => {
+      let mocks;
+      let user;
 
-      const button = queryByTestId("button");
+      beforeAll(() => {
+        user = {
+          id: "1",
+          name: "some name"
+        };
 
-      expect(queryByTestId("data-list")).toBe(null);
+        const DELETE_USER_MUTATION = gql`
+          mutation deleteUser($id: ID!) {
+            deleteUser(id: $id) {
+              id
+              name
+            }
+          }
+        `;
 
-      fireEvent.click(button);
+        mocks = [
+          {
+            request: {
+              query: DELETE_USER_MUTATION,
+              variables: { id: user.id }
+            },
+            result: { data: { user } }
+          }
+        ];
+      });
 
-      await waitForDomChange({ container });
+      it("sends request and returns correct result", async () => {
+        const runAction = dataProvider =>
+          dataProvider.delete("users", { id: user.id });
+        const { queryByTestId, container } = renderComponent({
+          dataSchema,
+          mocks,
+          runAction
+        });
 
-      expect(queryByTestId("id").textContent).toBe(user.id);
-      expect(queryByTestId("name").textContent).toBe(user.name);
+        const button = queryByTestId("button");
 
-      expect(queryByTestId("message").textContent).toBe(
-        "user has been loaded with success"
-      );
+        expect(queryByTestId("data-list")).toBe(null);
+
+        fireEvent.click(button);
+
+        await waitForDomChange({ container });
+
+        expect(queryByTestId("id").textContent).toBe(user.id);
+        expect(queryByTestId("name").textContent).toBe(user.name);
+
+        expect(queryByTestId("message").textContent).toBe(
+          "user has been loaded with success"
+        );
+      });
     });
   });
 });

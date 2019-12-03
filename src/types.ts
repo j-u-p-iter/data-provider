@@ -93,17 +93,17 @@ export interface DataProvider {
 
   getOne: DataProviderMethod<GetOneParams, Response>;
 
-  getMany: DataProviderMethod<GetManyParams, Response>;
+  getMany?: DataProviderMethod<GetManyParams, Response>;
 
   update: DataProviderMethod<UpdateParams, Response>;
 
-  updateMany: DataProviderMethod<UpdateManyParams, Response>;
+  updateMany?: DataProviderMethod<UpdateManyParams, Response>;
 
   create: DataProviderMethod<CreateParams, Response>;
 
   delete: DataProviderMethod<DeleteParams, Response>;
 
-  deleteMany: DataProviderMethod<DeleteManyParams, Response>;
+  deleteMany?: DataProviderMethod<DeleteManyParams, Response>;
 }
 
 export type CreateBaseRESTDataProvider = (params: {
