@@ -67,9 +67,14 @@ export const createGraphQLDataProvider: CreateGraphQLDataProvider = ({
 
     const getSomeResourceQuery = query(
       `get${capitalizeFirstCharacter(pluralize.singular(resource))}`,
-      {
-        [pluralize.singular(resource)]: params({ id }, paramsToFetch)
-      }
+      params(
+        {
+          $id: "ID!"
+        },
+        {
+          [pluralize.singular(resource)]: params({ id: "$id" }, paramsToFetch)
+        }
+      )
     );
 
     const data = await client.query({

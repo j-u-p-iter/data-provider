@@ -228,13 +228,13 @@ describe("createGraphQLDataProvider", () => {
     describe("with fieldsNamesToFetch", () => {
       beforeAll(() => {
         user = {
-          id: "12345",
+          id: "1234q5",
           name: "some name"
         };
 
         const GET_USER_QUERY = gql`
-          query getUser {
-            user(id: 12345) {
+          query getUser($id: ID!) {
+            user(id: $id) {
               name
             }
           }
@@ -286,13 +286,13 @@ describe("createGraphQLDataProvider", () => {
     describe("without fieldsNamesToFetch", () => {
       beforeAll(() => {
         user = {
-          id: "1",
+          id: "12345d",
           name: "some name"
         };
 
         const GET_USER_QUERY = gql`
-          query getUser {
-            user(id: 12345) {
+          query getUser($id: ID!) {
+            user(id: $id) {
               id
               name
             }
@@ -304,7 +304,7 @@ describe("createGraphQLDataProvider", () => {
             request: {
               query: GET_USER_QUERY,
               variables: {
-                id: "12345"
+                id: user.id
               }
             },
             result: { data: { user } }
@@ -314,7 +314,7 @@ describe("createGraphQLDataProvider", () => {
 
       it("sends request and returns correct result", async () => {
         const runAction = dataProvider =>
-          dataProvider.getOne("users", { id: "12345" });
+          dataProvider.getOne("users", { id: user.id });
 
         const { queryByTestId, container } = renderComponent({
           dataSchema,
