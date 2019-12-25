@@ -74,7 +74,6 @@ export interface UpdateManyParams {
 
 // CREATE
 export interface CreateParams {
-  id: Identifier;
   data: RecordWithoutID;
 }
 
