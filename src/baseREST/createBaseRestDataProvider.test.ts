@@ -128,7 +128,6 @@ describe("createBaseRestDataProvider", () => {
 
       it("sends request and returns correct result", async () => {
         const createdPost = await baseRestDataProvider.create("posts", {
-          id: "1",
           data: { title: "some title" }
         });
 
@@ -145,7 +144,6 @@ describe("createBaseRestDataProvider", () => {
 
       it("sends request and returns correct result", async () => {
         const createdPost = await baseRestDataProvider.create("posts", {
-          id: "1",
           data: { title: "some title" }
         });
 
@@ -310,7 +308,6 @@ describe("createBaseRestDataProvider", () => {
 
       it("sends request and returns correct result", async () => {
         const createdPost = await baseRestDataProvider.create("posts", {
-          id: "1",
           data: { title: "some title" }
         });
 
@@ -327,7 +324,6 @@ describe("createBaseRestDataProvider", () => {
 
       it("sends request and returns correct result", async () => {
         const createdPost = await baseRestDataProvider.create("posts", {
-          id: "1",
           data: { title: "some title" }
         });
 
