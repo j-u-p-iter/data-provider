@@ -15,14 +15,27 @@ export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
 
   const getList = (
     resource,
-    { pagination: { limit = 10, offset = 0 } = {} } = {}
+    { 
+      sorting: { sortBy = '', sortDir = '' } = {}, 
+      pagination: { limit = 10, offset = 0 } = {}, 
+    } = {}
   ) => {
+    const queryObject: { limit: number; offset: number; sortBy?: string; sortDir?: string; } = { limit, offset };
+
+    if (sortBy) {
+      queryObject.sortBy = sortBy;
+    }
+
+    if (sortDir) {
+      queryObject.sortDir = sortDir;
+    }
+
     const url = makeUrl({
       host,
       port,
       protocol,
       path: getPath(resource),
-      queryObject: { limit, offset }
+      queryObject,
     });
 
     return extractData<Response>(axios.get(url));

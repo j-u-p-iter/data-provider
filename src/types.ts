@@ -46,6 +46,10 @@ export interface GetListParams {
     limit: number;
     offset: number;
   };
+  sorting?: {
+    sortBy: string;
+    sortDir: string;
+  };
   fieldsNamesToFetch?: string[];
 }
 

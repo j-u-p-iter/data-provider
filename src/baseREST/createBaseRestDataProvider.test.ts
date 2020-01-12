@@ -51,6 +51,24 @@ describe("createBaseRestDataProvider", () => {
           expect(posts).toEqual({ id: 1 });
         });
       });
+
+      describe('with sorting', () => {
+        beforeAll(() => {
+          nock(baseUrl)
+            .get(path)
+            .query({ limit: 20, offset: 10, sortBy: 'title', sortDir: 'asc' })
+            .reply(200, { id: 1 });
+        });
+
+        it("sends request and returns correct result", async () => {
+          const posts = await baseRestDataProvider.getList("posts", {
+            pagination: { limit: 20, offset: 10 },
+            sorting: { sortBy: 'title', sortDir: 'asc' },
+          });
+
+          expect(posts).toEqual({ id: 1 });
+        });
+      });
     });
 
     describe("getOne", () => {
