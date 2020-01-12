@@ -15,12 +15,17 @@ export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
 
   const getList = (
     resource,
-    { 
-      sorting: { sortBy = '', sortDir = '' } = {}, 
-      pagination: { limit = 10, offset = 0 } = {}, 
+    {
+      sorting: { sortBy = "", sortDir = "" } = {},
+      pagination: { limit = 10, offset = 0 } = {}
     } = {}
   ) => {
-    const queryObject: { limit: number; offset: number; sortBy?: string; sortDir?: string; } = { limit, offset };
+    const queryObject: {
+      limit: number;
+      offset: number;
+      sortBy?: string;
+      sortDir?: string;
+    } = { limit, offset };
 
     if (sortBy) {
       queryObject.sortBy = sortBy;
@@ -35,7 +40,7 @@ export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
       port,
       protocol,
       path: getPath(resource),
-      queryObject,
+      queryObject
     });
 
     return extractData<Response>(axios.get(url));
