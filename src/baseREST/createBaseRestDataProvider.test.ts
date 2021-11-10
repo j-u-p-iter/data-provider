@@ -1,5 +1,5 @@
+import { fetchData } from "@j.u.p.iter/fetch-data";
 import nock from "nock";
-import { fetchData } from '@j.u.p.iter/fetch-data';
 import fetch, { Request } from "node-fetch";
 import { createBaseRestDataProvider } from "../.";
 import { DataProvider } from "../types";
@@ -21,7 +21,10 @@ describe("createBaseRestDataProvider", () => {
     const pathWithId = `/api/v1/${resource}/${params.id}`;
 
     beforeAll(() => {
-      baseRestDataProvider = createBaseRestDataProvider({ host: HOST, fetcher: fetchData });
+      baseRestDataProvider = createBaseRestDataProvider({
+        host: HOST,
+        fetcher: fetchData
+      });
     });
 
     describe("getList", () => {
@@ -219,7 +222,7 @@ describe("createBaseRestDataProvider", () => {
         protocol: "http",
         host: HOST,
         apiVersion: "v2",
-        port: 3000,
+        port: 3000
       });
     });
 

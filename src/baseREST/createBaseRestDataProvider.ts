@@ -1,5 +1,5 @@
 import { makeUrl } from "@j.u.p.iter/node-utils";
-import { extractData } from '../helpers';
+import { extractData } from "../helpers";
 
 import { CreateBaseRESTDataProvider } from "../types";
 
@@ -8,7 +8,7 @@ export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
   host,
   port = null,
   protocol = "https",
-  apiVersion = "v1",
+  apiVersion = "v1"
 }) => {
   const getPath = basePath => `api/${apiVersion}/${basePath}`;
 

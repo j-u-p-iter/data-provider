@@ -1,4 +1,4 @@
-import { Response } from './types';
+import { Response } from "./types";
 
 export const extractData = async <T = any>(
   request: Promise<Response>
