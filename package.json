@@ -21,7 +21,9 @@
     "start": "yarn run build --watch",
     "lint": "jupiter-scripts lint --format codeFrame",
     "lint:fix": "yarn run lint --fix",
-    "test": "jupiter-scripts test"
+    "validate": "jupiter-scripts validate",
+    "test": "jupiter-scripts test",
+    "deploy": "jupiter-scripts deploy"
   },
   "devDependencies": {
     "@apollo/react-hooks": "^3.1.3",
