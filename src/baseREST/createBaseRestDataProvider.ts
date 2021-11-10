@@ -1,15 +1,14 @@
 import { makeUrl } from "@j.u.p.iter/node-utils";
-import axios from "axios";
+import { extractData } from '../helpers';
 
-import { extractData } from "../helpers";
-
-import { CreateBaseRESTDataProvider, Response } from "../types";
+import { CreateBaseRESTDataProvider } from "../types";
 
 export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
+  fetcher,
   host,
   port = null,
   protocol = "https",
-  apiVersion = "v1"
+  apiVersion = "v1",
 }) => {
   const getPath = basePath => `api/${apiVersion}/${basePath}`;
 
@@ -43,7 +42,7 @@ export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
       queryObject
     });
 
-    return extractData<Response>(axios.get(url));
+    return extractData<Response>(fetcher.get(url).request);
   };
 
   // GET
@@ -55,7 +54,7 @@ export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
       path: getPath([resource, params.id].join("/"))
     });
 
-    return extractData<Response>(axios.get(url));
+    return extractData<Response>(fetcher.get(url).request);
   };
 
   const getMany = (resource, params) => {
@@ -67,7 +66,7 @@ export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
       queryObject: { id: params.ids }
     });
 
-    return extractData<Response>(axios.get(url));
+    return extractData<Response>(fetcher.get(url).request);
   };
 
   const update = (resource, params) => {
@@ -78,7 +77,7 @@ export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
       path: getPath([resource, params.id].join("/"))
     });
 
-    return extractData<Response>(axios.put(url, params.data));
+    return extractData<Response>(fetcher.put(url, params.data).request);
   };
 
   const updateMany = (resource, params) => {
@@ -90,14 +89,14 @@ export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
       queryObject: { id: params.ids }
     });
 
-    return extractData<Response>(axios.put(url, params.data));
+    return extractData<Response>(fetcher.put(url, params.data).request);
   };
 
   // CREATE
   const create = (resource, params) => {
     const url = makeUrl({ host, port, protocol, path: getPath(resource) });
 
-    return extractData<Response>(axios.post(url, params.data));
+    return extractData<Response>(fetcher.post(url, params.data).request);
   };
 
   // DELETE
@@ -109,7 +108,7 @@ export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
       path: getPath([resource, params.id].join("/"))
     });
 
-    return extractData<Response>(axios.delete(url));
+    return extractData<Response>(fetcher.delete(url).request);
   };
 
   const deleteMany = (resource, params) => {
@@ -121,7 +120,7 @@ export const createBaseRestDataProvider: CreateBaseRESTDataProvider = ({
       queryObject: { id: params.ids }
     });
 
-    return extractData<Response>(axios.delete(url));
+    return extractData<Response>(fetcher.delete(url).request);
   };
 
   return {

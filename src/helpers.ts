@@ -1,7 +1,7 @@
-import { AxiosPromise } from "axios";
+import { Response } from './types';
 
 export const extractData = async <T = any>(
-  request: AxiosPromise<T>
+  request: Promise<Response>
 ): Promise<T> => {
   const { data } = await request;
 

@@ -21,24 +21,9 @@ export interface Record extends RecordWithoutID {
   [key: string]: any;
 }
 
-export type RecordsList = Record[];
-
 export type IdentifiersList = Identifier[];
 
 export type Resource = string;
-
-// We also return array of records to be able to handle all cases in one common consistent way.
-// `data` property in response can also contain properties, different from `items`.
-// For example, in case of GetListParams we get in data also total count of all items to be able
-// to show pagination on client side.
-export interface Response {
-  success: boolean;
-  message: string;
-  data: {
-    items: RecordsList;
-    [key: string]: any;
-  };
-}
 
 // GET LIST
 export interface GetListParams {
@@ -108,8 +93,31 @@ export interface DataProvider {
 
   deleteMany?: DataProviderMethod<DeleteManyParams, Response>;
 }
+export type Response = any;
+
+export type GetMethod<R = any> = (url: string) => { request: Promise<R> };
+
+export type PostMethod<T = any, R = any> = (
+  url: string,
+  data: T
+) => { request: Promise<R> };
+
+export type PutMethod<T = any, R = any> = (
+  url: string,
+  data: T
+) => { request: Promise<R> };
+
+export type DeleteMethod<R = any> = (url: string) => { request: Promise<R> };
+
+interface Fetcher {
+  get: GetMethod;
+  post: PostMethod;
+  put: PutMethod;
+  delete: DeleteMethod;
+}
 
 export type CreateBaseRESTDataProvider = (params: {
+  fetcher: Fetcher;
   host: string;
   protocol?: string;
   apiVersion?: string;

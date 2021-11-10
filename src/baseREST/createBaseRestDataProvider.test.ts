@@ -1,4 +1,6 @@
 import nock from "nock";
+import { fetchData } from '@j.u.p.iter/fetch-data';
+import fetch, { Request } from "node-fetch";
 import { createBaseRestDataProvider } from "../.";
 import { DataProvider } from "../types";
 
@@ -8,6 +10,9 @@ describe("createBaseRestDataProvider", () => {
   const HOST = "super-site.com";
   const resource = "posts";
 
+  globalThis.fetch = fetch as any;
+  globalThis.Request = Request as any;
+
   let baseRestDataProvider: DataProvider;
 
   describe("with default params", () => {
@@ -16,7 +21,7 @@ describe("createBaseRestDataProvider", () => {
     const pathWithId = `/api/v1/${resource}/${params.id}`;
 
     beforeAll(() => {
-      baseRestDataProvider = createBaseRestDataProvider({ host: HOST });
+      baseRestDataProvider = createBaseRestDataProvider({ host: HOST, fetcher: fetchData });
     });
 
     describe("getList", () => {
@@ -25,13 +30,13 @@ describe("createBaseRestDataProvider", () => {
           nock(baseUrl)
             .get(path)
             .query({ limit: 10, offset: 0 })
-            .reply(200, { id: 1 });
+            .reply(200, [{ id: 1 }]);
         });
 
         it("sends request and returns correct result", async () => {
           const posts = await baseRestDataProvider.getList("posts");
 
-          expect(posts).toEqual({ id: 1 });
+          expect(posts).toEqual([{ id: 1 }]);
         });
       });
 
@@ -210,10 +215,11 @@ describe("createBaseRestDataProvider", () => {
 
     beforeAll(() => {
       baseRestDataProvider = createBaseRestDataProvider({
+        fetcher: fetchData,
         protocol: "http",
         host: HOST,
         apiVersion: "v2",
-        port: 3000
+        port: 3000,
       });
     });
 
